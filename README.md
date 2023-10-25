@@ -22,4 +22,5 @@ https://blog.codefactory.ai/javascript?page=1
 
 ### Nestjs
 
-- 
+RESOURCE 키워드를 통한 mocos생성
+- nest g resource
