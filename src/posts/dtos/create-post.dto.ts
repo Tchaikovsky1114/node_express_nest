@@ -3,10 +3,6 @@ import { IsString, MinLength } from "class-validator";
 
 
 export class CreatePostDto {
-  
-  @IsString()
-  author: string;
-
   @IsString()
   @MinLength(10)
   title: string;
@@ -15,6 +11,8 @@ export class CreatePostDto {
   content: string;
 
   likeCount: number;
+
+  authorId: number;
 
   commentCount: number;
 }
