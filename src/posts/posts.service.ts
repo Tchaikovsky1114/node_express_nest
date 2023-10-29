@@ -4,25 +4,31 @@ import { PostModel } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
+import { UserModel } from '../users/entities/user.entity';
 
 @Injectable()
 export class PostsService {
   constructor( 
-    @InjectRepository(PostModel) // @Injectable처럼 D.I에 주입가능함을 알림
-    private readonly postRepository: Repository<PostModel> // Inject Repository
+    // @Injectable처럼 D.I에 주입가능함을 알림
+    @InjectRepository(PostModel) private readonly postRepository: Repository<PostModel>,
+    @InjectRepository(UserModel) private readonly userRepository: Repository<UserModel>
     ){}
 
     async getAllPosts() {
-      return this.postRepository.find();
+      return this.postRepository.find(
+        {
+          relations: ['author']
+        }
+      );
     }
 
     async getPostById(id: number) {
       const post = await this.postRepository.findOne({
-        where: {
-          id
-        }
+        where: { id },
+        relations:['author']
       })
-      if(!post) throw new NotFoundException('존재하지 않는 계정입니다.');
+      
+      if(!post) throw new NotFoundException('존재하지 않는 게시물입니다.');
 
       return post
     }
