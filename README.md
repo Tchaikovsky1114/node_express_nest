@@ -66,6 +66,47 @@ INSERT INTO {table} {column1, column2, ...} VALUES {value1, value2, ...}
 
 POSTGRESQL: Add Connection으로 VSCODE 내에서 DB 매니징이 가능하다.
 IP : 로컬(127.0.0.1)
-root: DATABASE_USER
+root
 password
 port
+
+### Session
+
+유저의 정보를 저장하고 상태를 유지하기 위한 도구이다.
+
+Session은 특수한 ID값으로 구성되어있다.
+Session은 **서버에서 생성**되며 클라이언트에서 **쿠키를 통해 저장**된다.
+
+클라이언트에서 요청을 보낼 때 Session ID를 같이 보내면
+서버에서 ID를 확인하여 사용자가 누구인지 알 수 있게 된다.
+=> 요청할 때마다 매번 사용자의 아이디와 비밀번호를 물어볼 필요가 없게 된다.
+
+서버에서 데이터가 저장되기 때문에 클라이언트에 사용자 정보가 노출될 위험이 없다.
+
+단점: Session ID는 DB에 저장되기 때문에 요청이 있을 때마다 매번 DB를 확인해야하므로
+Horizontal Scaling이 어렵다.
+=> 리소스적인 단점이 있다.
+
+
+### JWT
+
+
+`Header`, `Payload`, `Signature`로 구성되어 있으며, BASE64로 인코딩된 문자열로 이루어진 토큰이다.
+
+JWT은 서버에서 생성하여 클라이언트에서 저장된다.
+
+JWT는 DB에 저장하지 않고 Signature값을 이용하여 검증할 수 있다.
+
+정보가 모두 토큰에 담겨있는 부분과, 클라이언트가 토큰을 저장하는 부분으로 인해 정보 유출 위험이 있다.
+
+### Session VS JWT
+
+정보 저장의 주체 : 서버 
+|비교요소|Session|JWT|
+|------|---|---|
+|정보 저장의 주체|서버|클라이언트|
+|요청시 서버로 보내는 정보|쿠키|토큰|
+|DB 의존성|의존적|비의존적|
+|탈취 가능성|낮음|높음|
+|Horizontal Scaling|어려움|쉬움|
+
