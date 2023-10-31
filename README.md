@@ -122,3 +122,26 @@ Access Token은 유효기간이 짧고, Refresh Token은 유효기간이 길다.
 |Horizontal Scaling|어려움|쉬움|
 
 
+## 서비스는 모듈에 의존성을 갖는다.
+
+**`@Module` 데코레이터에 인자로 전달하는 객체의 내부 프로퍼티인 providers의 값으로 들어있는 의존성 배열의 요소들은 `@Module` 데코레이터가 적용된 모듈에서만 사용할 수 있다**
+
+```ts
+@Module({
+  imports: [],
+  controller: [],
+  providers: [] // 다른 모듈에서는 사용이 불가능하다.
+})
+export class FooModule{}
+```
+
+만약 다른 모듈에서의 사용을 희망한다면 따로 `export` 프로퍼티에 명시해주어야 한다
+
+```ts
+@Module({
+  imports: [],
+  exports: [], // ++
+  controller: [],
+  providers: []
+})
+```

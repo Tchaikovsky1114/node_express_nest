@@ -12,6 +12,7 @@ import { PostModel } from 'src/posts/entities/post.entity';
       PostModel
     ])
   ],
+  exports: [UsersService],
   controllers: [UsersController],
   providers: [UsersService],
 })
