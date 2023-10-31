@@ -1,6 +1,6 @@
-## 메모
+# 메모
 
-### Nodejs
+## Nodejs
 싱글스레드인 노드는 이벤트 루프를 통해 논블로킹 요청은 처리하여 프론트로,
 블로킹 요청은 워커 스레드로 보내며 마치 멀티스레드와 같이 움직인다!
 
@@ -14,7 +14,7 @@ https://blog.codefactory.ai/javascript?page=1
 - Query Parameter (?page=1)
 
 
-### Nestjs
+## Nestjs
 
 express를 클린하게, 모두가 같은 컨밴션으로 코드를 작성하기 위해
 Inversion of Control, Dependencies Injection 아키텍쳐를 적용한
@@ -62,7 +62,7 @@ RESOURCE 키워드를 통한 mocos생성
 INSERT INTO {table} {column1, column2, ...} VALUES {value1, value2, ...}
 
 
-### DOCKER
+## DOCKER
 
 POSTGRESQL: Add Connection으로 VSCODE 내에서 DB 매니징이 가능하다.
 IP : 로컬(127.0.0.1)
@@ -70,7 +70,7 @@ root
 password
 port
 
-### Session
+## Session
 
 유저의 정보를 저장하고 상태를 유지하기 위한 도구이다.
 
@@ -88,7 +88,7 @@ Horizontal Scaling이 어렵다.
 => 리소스적인 단점이 있다.
 
 
-### JWT
+## JWT
 
 
 `Header`, `Payload`, `Signature`로 구성되어 있으며, BASE64로 인코딩된 문자열로 이루어진 토큰이다.
@@ -99,7 +99,18 @@ JWT는 DB에 저장하지 않고 Signature값을 이용하여 검증할 수 있�
 
 정보가 모두 토큰에 담겨있는 부분과, 클라이언트가 토큰을 저장하는 부분으로 인해 정보 유출 위험이 있다.
 
-### Session VS JWT
+### JWT - Refresh Token & Access Token
+
+Access Token은 검증용 토큰으로 인증이 필요한 API를 사용할 때 사용된다.
+Refresh Token은 Access Token을 새로고침 하는 기능을 하며 Access Token을 추가로 발급할 때 사용된다.
+Access Token은 유효기간이 짧고, Refresh Token은 유효기간이 길다.(보안상)
+
+### bcrypt
+느리다 그래서 보안에 좋다.
+
+
+
+## Session VS JWT
 
 정보 저장의 주체 : 서버 
 |비교요소|Session|JWT|
@@ -109,4 +120,5 @@ JWT는 DB에 저장하지 않고 Signature값을 이용하여 검증할 수 있�
 |DB 의존성|의존적|비의존적|
 |탈취 가능성|낮음|높음|
 |Horizontal Scaling|어려움|쉬움|
+
 
