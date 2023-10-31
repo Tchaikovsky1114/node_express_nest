@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserModel } from 'src/users/entities/user.entity';
-import { JWT_SECRET } from './const/auth.const';
+import { HASH_ROUND, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from 'src/users/dtos/create-user.dto';
 @Injectable()
 export class AuthService {
 
@@ -84,10 +85,30 @@ export class AuthService {
     return existingUser;
   }
 
+ 
+
   async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
     const existingUser = await this.authenticateWithEmailAndPassword(user);
 
     return this.loginUser(existingUser);
-
   }
+
+  async registerWithEmail(user: Pick<UserModel, 'email' | 'nickname' | 'password'>) {
+    /**
+     * 파라미터
+     * 1. 비밀번호
+     * 2. 해싱 라운드
+     */
+    const hash = await bcrypt.hash(user.password, HASH_ROUND);
+    const newUser = await this.usersService.createUser({
+      email: user.email,
+      nickname: user.nickname,
+      password: hash
+    });
+
+    return this.loginUser(newUser)
+  }
+  
+
+  // => 유저 접속 => loginWithEmail => authenticateWithEmailAndPassword(이메일,비밀번호 확인) => loginUser => signToken
 }
