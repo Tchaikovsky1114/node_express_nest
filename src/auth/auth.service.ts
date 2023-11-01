@@ -25,7 +25,29 @@ export class AuthService {
    *    사용자가 필요로하는 resource를 보내준다.
    *    ex) 현재 로그인 사용자의 게시물만 가져오기 위해 토큰의 sub(id) 값에 입력되어 있는
    *        사용자 게시물만 따로 필터링 할 수 있다.
+   * 4) 토큰에는 유효기간이 존재하며 만료될 시 토큰 발급 앤드포인트에 요청하여 새 토큰을 발급받아야 한다.
+   * => auth/token/access , auth/token/refresh
+   */  
+  
+  /**
+   * 
+   * Header로 부터 토큰을 받을 때
+   * {authorization: 'Basic {token}'}
+   * {authorization: 'Bearer {token}'}
    */
+  
+  async extractTokenFromHeader (header: string, isBearer: boolean) {
+    const splitToken = header.split(' ');
+    
+
+    const prefix = isBearer ? 'Bearer' : 'Basic'
+    if(splitToken.length !== 2 || splitToken[0] !== prefix ) throw new UnauthorizedException('잘못된 인증토큰입니다.')
+    
+    const token = splitToken[1];
+
+    return token
+    
+  }
 
   /**
    * 우리가 만드려는 기능
