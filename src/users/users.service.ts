@@ -28,9 +28,11 @@ export class UsersService {
       password: user.password,
       email: user.email
     });
+    const newUser = await this.userRepository.save(userObj);
 
-    return await this.userRepository.save(userObj);
+    return newUser
   } 
+
   async findAllUser () {
     return await this.userRepository.find()
   }

@@ -4,7 +4,7 @@ import { UserModel } from 'src/users/entities/user.entity';
 import { HASH_ROUND, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from 'src/users/dtos/create-user.dto';
+
 @Injectable()
 export class AuthService {
 
@@ -12,6 +12,20 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly usersService: UsersService
   ) {}
+
+
+  /**
+   * 
+   * 토큰을 사용하게 되는 방식
+   * 1) 클라이언트에서 로그인 / 회원가입 요청시 Basic 토큰과 함께 요청을 보내야한다
+   *    ex) {authorization: 'Basic {token}'}
+   * 2) 아무나 접근할 수 없는 정보에 접근할 때 at를 Header에 추가해서 요청을 보내야 한다
+   *    ex) {authorization: 'Bearer {token}'}
+   * 3) 서버는 토큰 검증(verify)을 통해 현재 요청을 보낸 사용자가 누군지 알 수 있게 되고
+   *    사용자가 필요로하는 resource를 보내준다.
+   *    ex) 현재 로그인 사용자의 게시물만 가져오기 위해 토큰의 sub(id) 값에 입력되어 있는
+   *        사용자 게시물만 따로 필터링 할 수 있다.
+   */
 
   /**
    * 우리가 만드려는 기능
@@ -61,8 +75,8 @@ export class AuthService {
 
   loginUser(user: Pick<UserModel, 'email' | 'id'>) {
     return {
-      accessToken:this.signToken(user, false),
-      refreshToken:this.signToken(user, true),
+      accessToken: this.signToken(user, false),
+      refreshToken: this.signToken(user, true),
     }
   }
 
@@ -85,11 +99,8 @@ export class AuthService {
     return existingUser;
   }
 
- 
-
   async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
     const existingUser = await this.authenticateWithEmailAndPassword(user);
-
     return this.loginUser(existingUser);
   }
 
@@ -100,13 +111,13 @@ export class AuthService {
      * 2. 해싱 라운드
      */
     const hash = await bcrypt.hash(user.password, HASH_ROUND);
-    const newUser = await this.usersService.createUser({
-      email: user.email,
-      nickname: user.nickname,
+    const userObj = {
+      ...user,
       password: hash
-    });
+    }
+    const newUser = await this.usersService.createUser(userObj);
 
-    return this.loginUser(newUser)
+    return this.loginUser(newUser);
   }
   
 
