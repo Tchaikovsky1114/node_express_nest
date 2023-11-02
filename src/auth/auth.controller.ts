@@ -6,18 +6,39 @@ import { UserModel } from 'src/users/entities/user.entity';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('token/access')
+  postTokenAccess(@Headers('Authorization') rawToken: string) {
+    const token = this.authService.extractTokenFromHeader(rawToken, true);
+
+    /**
+     * {accessToken: {token}}
+     */
+    const accessToken = this.authService.rotateToken(token, false)
+    return { accessToken }
+  }
+
+  @Post('token/refresh')
+  postTokenRefresh(@Headers('Authorization') rawToken: string) {
+    const token = this.authService.extractTokenFromHeader(rawToken, true);
+
+    /**
+     * {refreshToken: {token}}
+     */
+    const refreshToken = this.authService.rotateToken(token, true)
+
+    return { refreshToken }
+  }
+
   @Post('login/email')
-  async loginEmail(@Headers('Authorization') rawToken: string){
+  async postLoginEmail(@Headers('Authorization') rawToken: string){
     const token = await this.authService.extractTokenFromHeader(rawToken,false);
     const user = this.authService.decodeBasicToken(token);
-    console.log('email, password: ',user);
-    return this.authService.loginWithEmail(user);
 
+    return this.authService.loginWithEmail(user);
   }
 
   @Post('register/email')
-  registerEmail(@Body() user: Pick<UserModel, 'email' | 'password' | 'nickname'>){
+  postRegisterEmail(@Body() user: Pick<UserModel, 'email' | 'password' | 'nickname'>){
     return this.authService.registerWithEmail(user);
   }
-
 }

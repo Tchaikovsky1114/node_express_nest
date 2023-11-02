@@ -36,7 +36,7 @@ export class AuthService {
    * {authorization: 'Bearer {token}'}
    */
   
-  async extractTokenFromHeader (header: string, isBearer: boolean) {
+  extractTokenFromHeader (header: string, isBearer: boolean) {
     const splitToken = header.split(' ');
     const prefix = isBearer ? 'Bearer' : 'Basic';
 
@@ -53,6 +53,38 @@ export class AuthService {
     
     return { email, password }
   }
+
+  /**
+   * 토큰 검증
+   * @param token 
+   * @returns 
+   */
+  verifyToken(token: string) {
+    return this.jwtService.verify(token, {
+      secret: JWT_SECRET,
+    })
+  }
+
+  rotateToken(token: string, isRefreshToken: boolean) {
+    const decoded = this.jwtService.verify(token,{
+      secret:JWT_SECRET
+    })
+
+    /**
+     * sub: id
+     * email: email,
+     * type: 'access' | 'refresh'
+     */
+    if(decoded.type !== 'refresh') {
+      throw new UnauthorizedException('토큰 재발급이 불가능합니다.')
+    }
+    
+    return this.signToken({
+      ...decoded,
+    },isRefreshToken)
+  }
+
+
 
   /**
    * 우리가 만드려는 기능
@@ -127,7 +159,7 @@ export class AuthService {
   }
 
   async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
-    console.log(user);
+    
     const existingUser = await this.authenticateWithEmailAndPassword(user);
     return this.loginUser(existingUser);
   }
