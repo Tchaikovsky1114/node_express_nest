@@ -38,15 +38,20 @@ export class AuthService {
   
   async extractTokenFromHeader (header: string, isBearer: boolean) {
     const splitToken = header.split(' ');
-    
+    const prefix = isBearer ? 'Bearer' : 'Basic';
 
-    const prefix = isBearer ? 'Bearer' : 'Basic'
-    if(splitToken.length !== 2 || splitToken[0] !== prefix ) throw new UnauthorizedException('잘못된 인증토큰입니다.')
+    if(splitToken.length !== 2 || splitToken[0] !== prefix ) throw new UnauthorizedException('잘못된 인증토큰입니다.');
     
     const token = splitToken[1];
 
     return token
+  }
+
+  decodeBasicToken(base64String:string) {
+    const decoded = Buffer.from(base64String, 'base64').toString('utf8');
+    const [email, password] = decoded.split(':')
     
+    return { email, password }
   }
 
   /**
@@ -122,6 +127,7 @@ export class AuthService {
   }
 
   async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
+    console.log(user);
     const existingUser = await this.authenticateWithEmailAndPassword(user);
     return this.loginUser(existingUser);
   }
