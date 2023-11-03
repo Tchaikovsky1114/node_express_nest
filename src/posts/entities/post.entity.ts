@@ -1,12 +1,12 @@
 import { UserModel } from "src/users/entities/user.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseModel} from '../../common/base.entity'
+// 테이블로 변환됨
+@Entity() 
+export class PostModel extends BaseModel {
 
-@Entity() // 테이블로 변환됨
-export class PostModel {
 
-  // 프라이머리
-  @PrimaryGeneratedColumn()
-  id: number;
+  
   
   // 유저 테이블과 연동
   // ForeignKey를 통해서 UserModel과 연동한다.
@@ -30,5 +30,7 @@ export class PostModel {
 
   @Column()
   commentCount: number;
+
+  
 
 }
