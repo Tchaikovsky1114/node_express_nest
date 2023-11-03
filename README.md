@@ -145,3 +145,302 @@ export class FooModule{}
   providers: []
 })
 ```
+
+
+
+
+## 토큰 관리 방법
+
+클라이언트가 토큰을 발급, 갱신 할 수 있는 라우트는 총 4가지이다.
+
+1. 회원가입할 때
+2. 로그인할 때
+3. AccessToken이 만료되었을 때
+4. RefreshToken이 만료되었을 때
+
+먼저 회원가입부터 알아보자.
+
+```ts
+// auth.controller.ts
+  @Post('register/email')
+  postRegisterEmail(@Body() user: Pick<UserModel, 'email' | 'password' | 'nickname'>){
+    return this.authService.registerWithEmail(user);
+  }
+```
+유저는 회원가입 폼을 작성한 뒤 서버로 보낸다. 
+작성된 폼은 서비스의 `registerWithEmail`을 호출하며 인자로 보낸다.
+
+`registerWithEmail`
+```ts
+// auth.service.ts
+  async registerWithEmail(user: Pick<UserModel, 'email' | 'nickname' | 'password'>) {
+    const hash = await bcrypt.hash(user.password, HASH_ROUND);
+    const userObj = {
+      ...user,
+      password: hash
+    }
+    const newUser = await this.usersService.createUser(userObj);
+
+    return this.loginUser(newUser);
+  }
+```
+`registerWithEmail`의 역할
+1. 사용자의 비밀번호를 해싱한다.
+2. 해싱된 비밀번호와 함께 회원가입 폼을 `userService`의 `createUser` 메서드의 인자로 보내고 일련의 처리를 진행한다.
+3. 처리된 유저정보를 `loginUser` 함수의 인자로 보낸다.
+
+
+2번의 `userService.createUser`는 다음과 같다.
+
+```ts
+// user.Service.ts
+async createUser(user: Pick<UserModel,'email' | 'password' | 'nickname'>) {
+    
+    const existEmailAndNickname = await this.userRepository.exist({
+      where: [ { email: user.email }, { nickname: user.nickname} ]
+    })
+    
+    if(existEmailAndNickname) throw new BadRequestException('이메일 또는 닉네임이 존재합니다.');
+    
+    const userObj = this.userRepository.create({
+      nickname: user.nickname,
+      password: user.password,
+      email: user.email
+    });
+
+    const newUser = await this.userRepository.save(userObj);
+
+    return newUser
+  } 
+```
+`createUser`는 `loginUser`메서드 실행 이전에 회원정보를 validation 후 DB에 저장하고
+그 저장된 값을 리턴하는 함수이다.
+
+
+그 값을 가지고 `loginUser`로 들어가면 본격적으로 토큰에 관련된 로직들이 실행된다.
+```ts
+  loginUser(user: Pick<UserModel, 'email' | 'id'>) {
+    return {
+      accessToken: this.signToken(user, false),
+      refreshToken: this.signToken(user, true),
+    }
+  }
+
+```
+
+이 역시 추상화 되어 있어 정확히 무엇을 하는지는 파악이 어렵지만, `signToken` 메서드를 2번 호출한 값을
+accessToken, refreshToken 프로퍼티에 담아 객체로 반환하며 loginUser는 종료된다.
+
+알아보기 이전에 다시 한 번 짚어보자면 `loginUser`가 받는 매개변수 `user`는 `createUser`를 통해 실제 DB에 기록된 유저의 정보다.
+회원가입 폼에는 `id`가 없었지만, db에 기록되고 나서부터는 `id`를 부여받기 때문에 `id`를 `Pick`할 수 있다.
+
+accessToken에는 2번째 인자로 false를 전달하는 `signToken`을,
+refreshToken에는 2번째 인자로 true를 전달하는 `signToken`을 실행한다.
+
+그럼 이제 `signToken`에 대해 알아보자
+
+```ts
+
+  signToken(user: Pick<UserModel, 'email' | 'id'>, isRefreshToken: boolean) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      type: isRefreshToken ? 'refresh' : 'access'
+    };
+
+    return this.jwtService.sign(payload, {
+      secret: JWT_SECRET,
+      expiresIn: isRefreshToken ? 3600 : 300
+    })
+  }
+
+```
+먼저 return하는 값을 보면,
+jwtService의 sign 메서드를 사용하여 토큰을 생성하는데, 총 2개의 인자를 전달한다.
+1번째 인자인 `payload`는 JWT를 구성하는 재료다.
+추후 토큰을 decoding하여 정보로서 사용할 수 있어야 하기 때문에 `payload`에는 무작위 값을 넣을 수 없다.
+2번째 인자는 options이며 여러가지 옵션 중 `secret`은 JWT를 생성하는 곳에 같이 입력되는 값이며 expiresIn은 토큰의 유효기간이다.
+
+`payload.type`과 `sign`메서드의 2번째 인자인 `expiresIn`의 값은 삼항연산자로
+2번째 인자인 `isRefreshToken`에 따라 각각 다른 값이 들어오게 되고, 토큰의 형태 또한 달라지게 된다.
+
+
+즉 클라이언트측에서 유저가 회원가입을 하면,
+1. 사용자 비밀번호 해싱
+2. 해싱 정보와 함께 DB에 저장
+3. DB에 저장된 유저 레코드를 가져와 at,rt 생성
+4. 유저에게 전달
+
+로직 순으로 진행된다. ㅜ
+
+
+```ts
+@Post('token/access')
+  postTokenAccess(@Headers('Authorization') rawToken: string) {
+    const token = this.authService.extractTokenFromHeader(rawToken, true);
+    const accessToken = this.authService.rotateToken(token, false)
+    return { accessToken }
+  }
+
+  @Post('token/refresh')
+  postTokenRefresh(@Headers('Authorization') rawToken: string) {
+    const token = this.authService.extractTokenFromHeader(rawToken, true);
+    const refreshToken = this.authService.rotateToken(token, true)
+    return { refreshToken }
+  }
+
+  @Post('login/email')
+  async postLoginEmail(@Headers('Authorization') rawToken: string){
+    const token = await this.authService.extractTokenFromHeader(rawToken,false);
+    const user = this.authService.decodeBasicToken(token);
+    return this.authService.loginWithEmail(user);
+  }
+
+  @Post('register/email')
+  postRegisterEmail(@Body() user: Pick<UserModel, 'email' | 'password' | 'nickname'>){
+    return this.authService.registerWithEmail(user);
+  }
+  ```
+
+  ```ts
+extractTokenFromHeader (header: string, isBearer: boolean) {
+    const splitToken = header.split(' ');
+    const prefix = isBearer ? 'Bearer' : 'Basic';
+    if(splitToken.length !== 2 || splitToken[0] !== prefix ) throw new UnauthorizedException('잘못된 인증토큰입니다.');
+    const token = splitToken[1];
+    return token
+  }
+
+  decodeBasicToken(base64String:string) {
+    const decoded = Buffer.from(base64String, 'base64').toString('utf8');
+    const [email, password] = decoded.split(':')
+    
+    return { email, password }
+  }
+
+  /**
+   * 토큰 검증
+   * @param token 
+   * @returns 
+   */
+  verifyToken(token: string) {
+    return this.jwtService.verify(token, {
+      secret: JWT_SECRET,
+    })
+  }
+
+  rotateToken(token: string, isRefreshToken: boolean) {
+    const decoded = this.jwtService.verify(token,{
+      secret:JWT_SECRET
+    })
+
+    /**
+     * sub: id
+     * email: email,
+     * type: 'access' | 'refresh'
+     */
+    if(decoded.type !== 'refresh') {
+      throw new UnauthorizedException('토큰 재발급이 불가능합니다.')
+    }
+    
+    return this.signToken({
+      ...decoded,
+    },isRefreshToken)
+  }
+
+
+
+  /**
+   * 우리가 만드려는 기능
+   * 
+   * 1) registerWithEmail
+   *    - email, nickname, password를 입력받고 사용자를 생성한다.
+   *    - 생성이 완료되면 accessToken, refreshToken을 반환한다.
+   * 
+   * 2) loginWithEmail
+   *    - email, password를 받아 사용자를 검증한다
+   *    - 검증이 완료되면 accessToken, refreshToken을 반환한다
+   * 
+   * 3) loginUser
+   *    - 1), 2)에서 필요한 accessToken, refreshToken을 반환하는 로직
+   * 
+   * 4) signToken
+   *    - 3)에서 필요한 accessToken, refreshToken을 생성하는 로직
+   * 
+   * 5) authenticateWithEmailAndPassword
+   *    - 2)에서 로그인을 진행할 때 필요한 기본적인 검증 진행할
+   *      1. 사용자 존재 확인
+   *      2. 비밀번호 확인
+   *      3. 사용자 정보 반환
+   *      4. loginWithEmail에서 반환된 데이터를 기반으로 토큰 생성
+   * 
+   */
+
+  /**
+   * Payload에 들어갈 정보
+   * 
+   *  1) email
+   *  2) sub -> id
+   *  3) type -> 'access' | 'refresh'
+   */
+  signToken(user: Pick<UserModel, 'email' | 'id'>, isRefreshToken: boolean) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      type: isRefreshToken ? 'refresh' : 'access'
+    };
+
+    return this.jwtService.sign(payload, {
+      secret: JWT_SECRET,
+      expiresIn: isRefreshToken ? 3600 : 300
+    })
+  }
+
+  loginUser(user: Pick<UserModel, 'email' | 'id'>) {
+    return {
+      accessToken: this.signToken(user, false),
+      refreshToken: this.signToken(user, true),
+    }
+  }
+
+  async authenticateWithEmailAndPassword(user: Pick<UserModel, 'email' | 'password'>) {
+    // *      1. 사용자 존재 확인 (email)
+    // *      2. 비밀번호 확인
+    // *      3. 사용자 정보 반환
+    const existingUser = await this.usersService.getUserByEmail(user.email);
+    if(!existingUser) throw new UnauthorizedException('존재하지 않는 사용자입니다.') // 401
+    
+    /**
+     * 파라미터
+     * 
+     * 1. 현재 접속한 유저가 입력한 비밀번호
+     * 2. 기존 해시 (hash) -> 사용자 정보에 저장되어 있는 해시된 비밀번호
+     */
+    const passOk = await bcrypt.compare(user.password,existingUser.password);
+    if(!passOk) throw new UnauthorizedException('비밀번호가 틀렸습니다');
+
+    return existingUser;
+  }
+
+  async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
+    
+    const existingUser = await this.authenticateWithEmailAndPassword(user);
+    return this.loginUser(existingUser);
+  }
+
+  async registerWithEmail(user: Pick<UserModel, 'email' | 'nickname' | 'password'>) {
+    /**
+     * 파라미터
+     * 1. 비밀번호
+     * 2. 해싱 라운드
+     */
+    const hash = await bcrypt.hash(user.password, HASH_ROUND);
+    const userObj = {
+      ...user,
+      password: hash
+    }
+    const newUser = await this.usersService.createUser(userObj);
+
+    return this.loginUser(newUser);
+  }
+```
