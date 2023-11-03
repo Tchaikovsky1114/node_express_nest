@@ -271,8 +271,7 @@ jwtService의 sign 메서드를 사용하여 토큰을 생성하는데, 총 2개
 3. DB에 저장된 유저 레코드를 가져와 at,rt 생성
 4. 유저에게 전달
 
-로직 순으로 진행된다. ㅜ
-
+로직 순으로 진행된다.
 
 ```ts
 @Post('token/access')
@@ -443,4 +442,56 @@ extractTokenFromHeader (header: string, isBearer: boolean) {
 
     return this.loginUser(newUser);
   }
+```
+
+
+## Pipes
+
+변형하고, 검증하는 로직.
+
+컨트롤러에 들어가기 이전에 값을 변형하고, 잘못된 값이라면 Exception을 던질 수도 있다.
+
+
+### built in Pipes
+
+ValidationPipe
+ParseIntPipe
+PArseFloatPipe
+ParseUUIDPipe
+parseEnumPipe
+...
+
+커스텀도 가능하다
+
+### 커스텀파이프 만들어보기
+
+```ts
+@Injectable()
+export class PasswordPipe implements PipeTransform {
+
+  transform(value: any, metadata: ArgumentMetadata) {
+    
+    if(value.toString().length < 8) {
+      throw new BadRequestException('비밀번호는 8자 이상 입력해주세요')
+    } 
+    return value.toString();
+  }
+}
+
+
+@Injectable()
+export class MinLengthPipe implements PipeTransform {
+  constructor(
+    private readonly length: number,
+    private readonly target: string,
+    ) {}
+
+  transform(value: any, metadata: ArgumentMetadata) {
+    if(value.toString().length < this.length) {
+      throw new BadRequestException(`${this.target}의 최소 길이는 ${this.length} 입니다.`)
+    }  
+
+    return value.toString();
+  }
+}
 ```

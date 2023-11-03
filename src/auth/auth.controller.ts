@@ -1,3 +1,4 @@
+import { MaxLengthPipe, MinLengthPipe, PasswordPipe } from './pipes/password.pipe';
 import { Body, Controller, Headers, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserModel } from 'src/users/entities/user.entity';
@@ -38,7 +39,12 @@ export class AuthController {
   }
 
   @Post('register/email')
-  postRegisterEmail(@Body() user: Pick<UserModel, 'email' | 'password' | 'nickname'>){
-    return this.authService.registerWithEmail(user);
+  postRegisterEmail(
+    @Body() user:Pick<UserModel, 'email' | 'nickname'>,
+    @Body('password',
+    new MaxLengthPipe(20),
+      new MinLengthPipe(6, 'password')) password: string
+    ){
+    return this.authService.registerWithEmail({...user,password});
   }
 }
