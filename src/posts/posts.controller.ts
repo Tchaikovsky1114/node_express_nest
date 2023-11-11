@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
+import { AccessTokenGuard } from 'src/guard/bearer-token.guard';
 
 /**
  * author: string;
@@ -32,7 +33,9 @@ export class PostsController {
    return await this.postsService.getPostById(id);
   }
 
+  // 로그인 한 사용자만 할 수 있도록.
   @Post()
+  // @UseGuards(AccessTokenGuard)
   async createPost(@Body() body: CreatePostDto) {
     return this.postsService.createPost(body)
   }
@@ -46,4 +49,5 @@ export class PostsController {
   async deletePost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.deletePost(id);
   }
+
 }
