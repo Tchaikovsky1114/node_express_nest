@@ -9,10 +9,4 @@ export class CreatePostDto {
 
   @MinLength(10)
   content: string;
-
-  likeCount: number;
-
-  authorId: number;
-
-  commentCount: number;
 }

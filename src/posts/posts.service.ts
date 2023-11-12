@@ -33,12 +33,15 @@ export class PostsService {
       return post
     }
 
-    async createPost( body: CreatePostDto) {
+    async createPost( {authorId, content, title}) {
       const post = this.postRepository.create({
-        ...body,
+        content,
+        title,
         author: {
-          id: body.authorId
-        }
+          id: authorId
+        },
+        likeCount: 0,
+        commentCount: 0,
       });
       return await this.postRepository.save(post);
     }

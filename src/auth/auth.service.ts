@@ -60,9 +60,14 @@ export class AuthService {
    * @returns 
    */
   verifyToken(token: string) {
-    return this.jwtService.verify(token, {
-      secret: JWT_SECRET,
-    })
+    try {
+      return this.jwtService.verify(token, {
+        secret: JWT_SECRET,
+      })  
+    } catch (e) {
+     throw new UnauthorizedException('토큰이 만료되었거나 존재하지 않습니다.');
+    }
+    
   }
 
   rotateToken(token: string, isRefreshToken: boolean) {
@@ -75,9 +80,9 @@ export class AuthService {
      * email: email,
      * type: 'access' | 'refresh'
      */
-    if(decoded.type !== 'refresh') {
-      throw new UnauthorizedException('토큰 재발급이 불가능합니다.')
-    }
+    // if(decoded.type !== 'refresh') {
+    //   throw new UnauthorizedException('해당 토큰은 Refresh토큰이 아닙니다.')
+    // }
     
     return this.signToken({
       ...decoded,

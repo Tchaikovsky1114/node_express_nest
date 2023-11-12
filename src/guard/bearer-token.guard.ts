@@ -30,6 +30,7 @@ export class BearerTokenGuard implements CanActivate {
 
 @Injectable()
 export class AccessTokenGuard extends BearerTokenGuard {
+  
   async canActivate(context: ExecutionContext): Promise<boolean> {
     await super.canActivate(context);
     
