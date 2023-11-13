@@ -1,6 +1,7 @@
 import { UserModel } from "src/users/entities/user.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { BaseModel} from '../../common/base.entity'
+import { IsString, MinLength } from "class-validator";
 // 테이블로 변환됨
 @Entity() 
 export class PostModel extends BaseModel {
@@ -20,9 +21,18 @@ export class PostModel extends BaseModel {
   author: UserModel;
   
   @Column()
+  @IsString({
+    message: '제목은 문자열로 입력해야합니다.'
+  })
+  @MinLength(10,{
+    message: '제목은 10글자 이상 입력해야합니다.'
+  })
   title: string;
 
   @Column()
+  @MinLength(10, {
+    message: '글의 내용은 10자 이상 입력해야합니다.'
+  })
   content: string;
 
   @Column()

@@ -1,18 +1,8 @@
 import { IsString, MinLength } from "class-validator";
+import { PostModel } from "../entities/post.entity";
+import { PickType } from "@nestjs/mapped-types";
 
+// Pick, Omit, Partial ... => 유틸은 타입을 반환
+// PickType, OmitType, PartialType ... => 유틸+'Type'은 값을 반환
 
-
-export class CreatePostDto {
-  @IsString({
-    message: '제목은 문자열로 입력해야합니다.'
-  })
-  @MinLength(10,{
-    message: '제목은 10글자 이상 입력해야합니다.'
-  })
-  title: string;
-
-  @MinLength(10, {
-    message: '글의 내용은 10자 이상 입력해야합니다.'
-  })
-  content: string;
-}
+export class CreatePostDto extends PickType(PostModel,['title','content']) {}
