@@ -1,15 +1,4 @@
-import { IsString, MinLength } from "class-validator";
+import { PartialType } from "@nestjs/mapped-types";
+import { CreatePostDto } from "./create-post.dto";
 
-export class UpdatePostDto {
-
-  @IsString()
-  @MinLength(10)
-  title?: string;
-
-  @MinLength(10)
-  content?: string;
-
-  likeCount?: number;
-
-  commentCount?: number;
-}
+export class UpdatePostDto extends PartialType(CreatePostDto){}

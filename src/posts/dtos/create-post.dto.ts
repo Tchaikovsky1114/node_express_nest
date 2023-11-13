@@ -1,4 +1,3 @@
-import { IsString, MinLength } from "class-validator";
 import { PostModel } from "../entities/post.entity";
 import { PickType } from "@nestjs/mapped-types";
 

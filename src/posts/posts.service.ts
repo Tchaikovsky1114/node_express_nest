@@ -33,7 +33,7 @@ export class PostsService {
       return post
     }
 
-    async createPost( authorId, body: CreatePostDto) {
+    async createPost( authorId: number, body: CreatePostDto) {
       const post = this.postRepository.create({
         ...body,
         likeCount: 0,
@@ -48,13 +48,10 @@ export class PostsService {
     async updatePost(id: number, body:UpdatePostDto) {
       await this.getPostById(id);
 
-      const {likeCount, commentCount, title, content} = body;
+      
       
       return await this.postRepository.update(id,{
-        content,
-        likeCount,
-        title,
-        commentCount,
+        ...body
       })
     }
 
