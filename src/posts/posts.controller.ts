@@ -1,10 +1,9 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { AccessTokenGuard } from 'src/guard/bearer-token.guard';
 import { User } from 'src/users/decorator/user.decorator';
-import { UserModel } from 'src/users/entities/user.entity';
 
 /**
  * author: string;
@@ -40,18 +39,13 @@ export class PostsController {
   @UseGuards(AccessTokenGuard)
   async createPost(
     @Body() body: CreatePostDto,
-    
     // createParamDecorator의 data는
     // User 데코레이터 인수에 들어올 수 있는 값이다.
     // User 데코레이터의 인수에 값을 입력한 뒤 해당 매개변수는 그 값이 된다.
     @User('id') userId: number 
     ) {
 
-    return this.postsService.createPost({
-      authorId: userId,
-      title: body.title,
-      content: body.content,
-      })
+    return this.postsService.createPost(userId,body);
   }
 
   @Put(':id')
