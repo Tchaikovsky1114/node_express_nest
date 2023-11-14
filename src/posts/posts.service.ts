@@ -46,13 +46,14 @@ export class PostsService {
     }
 
     async updatePost(id: number, body:UpdatePostDto) {
-      await this.getPostById(id);
 
-      
-      
-      return await this.postRepository.update(id,{
+      await this.postRepository.update(id,{
         ...body
-      })
+      });
+
+      const user = await this.getPostById(id);
+
+      return user;
     }
 
     async deletePost(id: number) {

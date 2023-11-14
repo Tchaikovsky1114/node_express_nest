@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { UserModel } from 'src/users/entities/user.entity';
 import { BasicTokenGuard } from '../guard/basic-token.guard';
 import { AccessTokenGuard, RefreshTokenGuard } from '../guard/bearer-token.guard';
+import { RegisterUserDto } from './dtos/register-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -39,7 +40,6 @@ export class AuthController {
   // @Request() BasicTokenGuard 덕분에 req에는 user 프로퍼티가 존재하게 된다.
   postLoginEmail(
     @Headers('authorization') rawToken: string,
-    @Request() req,
     ){
     
     const token = this.authService.extractTokenFromHeader(rawToken,false);
@@ -50,12 +50,7 @@ export class AuthController {
   }
 
   @Post('register/email')
-  postRegisterEmail(
-    @Body() user:Pick<UserModel, 'email' | 'nickname'>,
-    @Body('password',
-    new MaxLengthPipe(20),
-      new MinLengthPipe(6, 'password')) password: string
-    ){
-    return this.authService.registerWithEmail({...user,password});
+  postRegisterEmail( @Body() user: RegisterUserDto){
+    return this.authService.registerWithEmail(user);
   }
 }

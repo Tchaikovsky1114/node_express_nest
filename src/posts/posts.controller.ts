@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
@@ -44,13 +44,12 @@ export class PostsController {
     // User 데코레이터의 인수에 값을 입력한 뒤 해당 매개변수는 그 값이 된다.
     @User('id') userId: number 
     ) {
-
     return this.postsService.createPost(userId,body);
   }
 
-  @Put(':id')
+  @Patch(':id')
   async updatePost(@Param('id',ParseIntPipe) id: number, @Body() body: UpdatePostDto) {
-    return this.postsService.updatePost(id, body)
+    return this.postsService.updatePost(id, body);
   }
 
   @Delete(':id')

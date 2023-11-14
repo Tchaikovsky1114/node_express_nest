@@ -4,6 +4,7 @@ import { UserModel } from 'src/users/entities/user.entity';
 import { HASH_ROUND, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { RegisterUserDto } from './dtos/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -169,7 +170,7 @@ export class AuthService {
     return this.loginUser(existingUser);
   }
 
-  async registerWithEmail(user: Pick<UserModel, 'email' | 'nickname' | 'password'>) {
+  async registerWithEmail(user: RegisterUserDto) {
     /**
      * 파라미터
      * 1. 비밀번호
