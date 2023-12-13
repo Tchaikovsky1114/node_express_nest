@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Query } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { PostModel } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { UserModel } from '../users/entities/user.entity';
+import { PaginatePostDto } from './dtos/paginate-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -20,6 +21,12 @@ export class PostsService {
           relations: ['author']
         }
       );
+    }
+
+    paginatePosts(
+      @Query() query: PaginatePostDto
+    ) {
+
     }
 
     async getPostById(id: number) {
