@@ -70,7 +70,9 @@ export class UserModel extends BaseModel{
   })
   role: Role;
 
-  @OneToMany(() => PostModel, (post) => post.author)
+  @OneToMany(() => PostModel, (post) => post.author,{
+    cascade: true
+  })
   posts: PostModel[];
 
 }

@@ -6,9 +6,6 @@ import { IsString, MinLength } from "class-validator";
 @Entity() 
 export class PostModel extends BaseModel {
 
-
-  
-  
   // 유저 테이블과 연동
   // ForeignKey를 통해서 UserModel과 연동한다.
   // Null이 될 수 없다.
@@ -19,6 +16,9 @@ export class PostModel extends BaseModel {
     nullable: false
   })
   author: UserModel;
+
+  
+  
   
   @Column()
   @IsString({
@@ -40,7 +40,4 @@ export class PostModel extends BaseModel {
 
   @Column()
   commentCount: number;
-
-  
-
 }

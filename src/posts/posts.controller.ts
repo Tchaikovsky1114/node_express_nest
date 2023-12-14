@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
 import { AccessTokenGuard } from 'src/guard/bearer-token.guard';
 import { User } from 'src/users/decorator/user.decorator';
+import { PaginatePostDto } from './dtos/paginate-post.dto';
+import { UserModel } from 'src/users/entities/user.entity';
 
 /**
  * author: string;
@@ -25,13 +27,22 @@ interface Post {
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
   @Get()
-  async getAllPosts() {
-    return await this.postsService.getAllPosts();
+  getPosts(
+    @Query() query: PaginatePostDto,
+  ) {
+    return this.postsService.paginatePosts(query)
   }
   
   @Get(':id')
   async getPostById(@Param('id', ParseIntPipe) id: number) {
    return await this.postsService.getPostById(id);
+  }
+
+  @Post('random')
+  @UseGuards(AccessTokenGuard)
+  async createDummyPost(@User('id', ParseIntPipe) userId: number) {
+    await this.postsService.generatePosts(userId)
+    return true
   }
 
   // 로그인 한 사용자만 할 수 있도록.
@@ -44,6 +55,7 @@ export class PostsController {
     // User 데코레이터의 인수에 값을 입력한 뒤 해당 매개변수는 그 값이 된다.
     @User('id') userId: number 
     ) {
+    console.log(userId)
     return this.postsService.createPost(userId,body);
   }
 
