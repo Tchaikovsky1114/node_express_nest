@@ -1,6 +1,6 @@
 import {
-  Any, ArrayContainedBy, ArrayContains, ArrayElement, ArrayOverlap, Between, ILike, In, IsNull, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not,
-  Like,ArrayOperator, FindOptions, FindOperator, FindManyOptions
+  Any, ArrayContainedBy, ArrayContains, ArrayOverlap, Between, ILike, In, IsNull, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Not,
+  Like
 } from 'typeorm';
 
 

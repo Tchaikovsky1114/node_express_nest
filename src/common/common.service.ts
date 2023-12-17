@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { BasePaginationDto } from './dtos/base-pagination.dto';
-import { FindManyOptions, FindOptions, FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
 import { BaseModel } from './base.entity';
 import { FILTER_MAPPER } from './const/filter-mapper.const';
-
+import { HOST, PROTOCOL } from './const/env.const';
 @Injectable()
 export class CommonService {
 
@@ -14,9 +14,9 @@ export class CommonService {
     path: string, // url path variable ex) /posts
     ) {
       if(dto.page) {
-        this.pagePaginate(dto, repository, overrideFindOptions)
+        return this.pagePaginate(dto, repository, overrideFindOptions)
       } else {
-        this.cursorPaginate(dto, repository, overrideFindOptions, path)
+        return this.cursorPaginate(dto, repository, overrideFindOptions,path)
       }
   }
 
@@ -24,21 +24,55 @@ export class CommonService {
     dto: BasePaginationDto,
     repository: Repository<T>,
     overrideFindOptions: FindManyOptions<T> = {},
+    
   ) {
-
   }
 
-  private async cursorPaginate<T>(
+  private async cursorPaginate<T extends BaseModel>(
     dto: BasePaginationDto,
     repository: Repository<T>,
     overrideFindOptions: FindManyOptions<T> = {},
-    path: string, // url path variable ex) /posts
+    path: string
   ) {
     /**
      * where__likeCount__more_than
      * 
      * where__title__iLike
      */
+    const findOptions = this.composeFindOptions<T>(dto)
+
+    const results = await repository.find({
+      ...findOptions,
+      ...overrideFindOptions
+    })
+
+    const lastItem  = results.length > 0 && results.length === dto.take
+            ? results[results.length - 1]
+            : null;
+
+      const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/${path}`)
+
+      if(nextUrl) {
+        for(const key of Object.keys(dto)) {
+            if(dto[key]) {
+              if(key !== 'where__id__more_than' && key !== 'where__id__less_than') {
+                nextUrl.searchParams.append(key, dto[key])
+              }
+            }
+          }
+        dto.hasOwnProperty('where__id__more_than')
+        ? nextUrl.searchParams.append('where__id__more_than', lastItem.id + '')
+        : nextUrl.searchParams.append('where__id__less_than', lastItem.id + '')
+      }
+      return {
+        data: results,
+        cursor: {
+          after: lastItem?.id ?? null,
+        },
+        count: results.length,
+        next: nextUrl?.toString() ?? null,
+        last: dto.take !== results.length
+      }
   }
 
   private composeFindOptions<T extends BaseModel>(
@@ -120,20 +154,26 @@ export class CommonService {
         if(util === 'between') {
           const values = value.toString().split(',')
           options[field] = FILTER_MAPPER[util](values[0], values[1])
+        }else if (util === 'i_like') {
+          options[field] = FILTER_MAPPER[util](`%${value}%`)
+        } else {
+          options[field] = FILTER_MAPPER[util](value)
         }
-        options[field] = FILTER_MAPPER[util](value)
+        
       }
     return options
   }
 
   private parseOrderFilter<T extends BaseModel>(key: string, value: any): FindOptionsOrder<T> {
-    const options: FindOptionsOrder<T> = {};
+    const order: FindOptionsOrder<T> = {};
 
-    const splitKey = key.split('__')
+    const splitKey = key.split('__') // ['order','likeCount']
+    if(splitKey.length !== 2) {
+      throw new BadRequestException(`order 필터는 '__'로 나누었을 때 길이가 2어야합니다. 문제되는 키값은 ${key}입니다.`)
+    }
+    const [_, field] = splitKey // [_, likeCount]
+    order[field] = value // order = { likeCount: 'ASC' }
 
-    const [_, field] = splitKey
-    options[field] = value
-
-    return options
+    return order
   }
 }

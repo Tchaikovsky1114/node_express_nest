@@ -10,7 +10,9 @@ async function bootstrap() {
     transform: true,
     transformOptions: {
       enableImplicitConversion: true // transform이 될 때 class-validator를 기반으로(IsNumber, IsBoolean) 자동으로 형을 변환하여 직렬화
-    }
+    },
+    whitelist: true,
+    forbidNonWhitelisted: true
   }));
   await app.listen(3000);
 }

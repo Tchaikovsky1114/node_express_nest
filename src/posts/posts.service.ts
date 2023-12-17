@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException, Query } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
 import { PostModel } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dtos/create-post.dto';
@@ -7,76 +7,43 @@ import { UpdatePostDto } from './dtos/update-post.dto';
 import { UserModel } from '../users/entities/user.entity';
 import { PaginatePostDto } from './dtos/paginate-post.dto';
 import { HOST, PROTOCOL } from 'src/common/const/env.const';
+import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class PostsService {
   constructor( 
     // @Injectable처럼 D.I에 주입가능함을 알림
     @InjectRepository(PostModel) private readonly postRepository: Repository<PostModel>,
-    @InjectRepository(UserModel) private readonly userRepository: Repository<UserModel>
+    private readonly commonService: CommonService
     ){}
 
-    async getAllPosts() {
-      return this.postRepository.find(
-        {
-          relations: ['author']
-        }
-      );
-    }
+    // async getAllPosts() {
+    //   return this.postRepository.find(
+    //     {
+    //       relations: ['author']
+    //     }
+    //   );
+    // }
 
     // 오름차순으로 pagination
     async paginatePosts(dto: PaginatePostDto) {
-      const where: FindOptionsWhere<PostModel> = {
-        id:  dto.hasOwnProperty('where__id__more_than')
-        ? MoreThan(dto.where__id__more_than ?? 0)
-        : LessThan(dto.where__id__less_than ?? 0),
-      }
-
-      const posts = await this.postRepository.find({
-        where,
-        order: {
-          createdAt: dto.order__createdAt,
+      // const where: FindOptionsWhere<PostModel> = {
+      //   id:  dto.hasOwnProperty('where__id__more_than')
+      //   ? MoreThan(dto.where__id__more_than ?? 0)
+      //   : LessThan(dto.where__id__less_than ?? 0),
+      // }
+      return this.commonService.paginate(
+        dto,
+        this.postRepository,
+        {
+          // order: {
+            // likeCount: 'DESC'
+          // }
+          relations: ['author']
         },
-        take: dto.take
-      })
-
-      const lastItem  = posts.length > 0 && posts.length === dto.take
-            ? posts[posts.length - 1]
-            : null;
-
-      const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/posts`)
-
-      if(nextUrl) {
-        for(const key of Object.keys(dto)) {
-            if(dto[key]) {
-              if(key !== 'where__id__more_than' && key !== 'where__id__less_than') {
-                nextUrl.searchParams.append(key, dto[key])
-              }
-            }
-          }
-        dto.hasOwnProperty('where__id_more_than')
-        ? nextUrl.searchParams.append('where__id__more_than', lastItem.id + '')
-        : nextUrl.searchParams.append('where__id__less_than', lastItem.id + '')
-      }
-      /**
-       * Response
-       * 
-       * data: Data[]
-       * cursor: {
-       *    after: 마지막 Data의 Id
-       * },
-       * count: 응답한 데이터의 갯수
-       * next: 다음 요청을 할 때 사용할 url
-       */
-      return {
-        data: posts,
-        cursor: {
-          after: lastItem?.id ?? null,
-        },
-        count: posts.length,
-        next: nextUrl?.toString() ?? null,
-        last: dto.take !== posts.length
-      }
+        'posts'
+      )
+      
     }
 
     async generatePosts(authorId: number) {
@@ -95,6 +62,7 @@ export class PostsService {
         author: {
           id: authorId
         },
+        
       });
       return await this.postRepository.save(post);
     }

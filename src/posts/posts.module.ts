@@ -7,6 +7,8 @@ import { UserModel } from 'src/users/entities/user.entity';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { CommonService } from 'src/common/common.service';
+import { CommonModule } from 'src/common/common.module';
 
 
 @Module({
@@ -15,7 +17,7 @@ import { JwtService } from '@nestjs/jwt';
       PostModel,
       UserModel
     ]), // 모델에 해당하는 레포지토리를 주입
-    
+    CommonModule
   ],
   controllers: [PostsController],
   providers: [PostsService,AuthService,UsersService,JwtService],
