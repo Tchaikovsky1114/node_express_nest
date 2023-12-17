@@ -16,9 +16,6 @@ export class PaginatePostDto extends BasePaginationDto{
 
   @IsIn(['ASC', 'DESC'])
   @IsOptional()
-  order__likeCount: 'ASC' | 'DESC' = 'ASC'
+  order__likeCount: 'ASC' | 'DESC'
   
-  @IsString()
-  @IsOptional()
-  where__title_i_like: string
 }

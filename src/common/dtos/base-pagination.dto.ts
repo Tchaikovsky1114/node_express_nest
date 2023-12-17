@@ -21,8 +21,7 @@ export class BasePaginationDto {
   // 정렬
   @IsIn(['ASC', 'DESC'])
   @IsOptional()
-  order__createdAt: 'ASC' | 'DESC' = 'ASC'
-
+  order__createdAt: 'ASC' | 'DESC'
   // 몇개의 데이터를 응답으로 받을지
   @IsNumber()
   @IsOptional()

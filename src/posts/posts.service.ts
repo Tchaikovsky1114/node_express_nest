@@ -1,12 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { PostModel } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { UpdatePostDto } from './dtos/update-post.dto';
-import { UserModel } from '../users/entities/user.entity';
 import { PaginatePostDto } from './dtos/paginate-post.dto';
-import { HOST, PROTOCOL } from 'src/common/const/env.const';
 import { CommonService } from 'src/common/common.service';
 
 @Injectable()
@@ -43,7 +41,6 @@ export class PostsService {
         },
         'posts'
       )
-      
     }
 
     async generatePosts(authorId: number) {
@@ -62,7 +59,6 @@ export class PostsService {
         author: {
           id: authorId
         },
-        
       });
       return await this.postRepository.save(post);
     }
