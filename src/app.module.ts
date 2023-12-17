@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { UserModel } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
       synchronize: true
     }),
     UsersModule,
-    AuthModule
+    AuthModule,
+    CommonModule
   ],
   
   controllers: [AppController],
