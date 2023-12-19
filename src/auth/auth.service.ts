@@ -1,17 +1,19 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserModel } from 'src/users/entities/user.entity';
-import { HASH_ROUND, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dtos/register-user.dto';
+import { ConfigService } from '@nestjs/config';
+import { ENV_HASH_ROUNDS_KEY, ENV_JWT_SECRET_KEY } from 'src/common/const/env-keys.const';
 
 @Injectable()
 export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly ConfigService: ConfigService
   ) {}
 
 
@@ -63,7 +65,7 @@ export class AuthService {
   verifyToken(token: string) {
     try {
       return this.jwtService.verify(token, {
-        secret: JWT_SECRET,
+        secret: this.ConfigService.get(ENV_JWT_SECRET_KEY),
       })  
     } catch (e) {
      throw new UnauthorizedException('토큰이 만료되었거나 존재하지 않습니다.');
@@ -73,7 +75,7 @@ export class AuthService {
 
   rotateToken(token: string, isRefreshToken: boolean) {
     const decoded = this.jwtService.verify(token,{
-      secret:JWT_SECRET
+      secret: this.ConfigService.get(ENV_JWT_SECRET_KEY)
     })
 
     /**
@@ -133,7 +135,7 @@ export class AuthService {
     };
 
     return this.jwtService.sign(payload, {
-      secret: JWT_SECRET,
+      secret: this.ConfigService.get(ENV_JWT_SECRET_KEY),
       expiresIn: isRefreshToken ? 3600 : 300
     })
   }
@@ -176,7 +178,7 @@ export class AuthService {
      * 1. 비밀번호
      * 2. 해싱 라운드
      */
-    const hash = await bcrypt.hash(user.password, HASH_ROUND);
+    const hash = await bcrypt.hash(user.password, parseInt( this.ConfigService.get(ENV_HASH_ROUNDS_KEY)));
     const userObj = {
       ...user,
       password: hash

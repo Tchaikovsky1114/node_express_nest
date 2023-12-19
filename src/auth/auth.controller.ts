@@ -1,7 +1,5 @@
-import { MaxLengthPipe, MinLengthPipe } from './pipes/password.pipe';
 import { Body, Controller, Headers, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserModel } from 'src/users/entities/user.entity';
 import { BasicTokenGuard } from '../guard/basic-token.guard';
 import { AccessTokenGuard, RefreshTokenGuard } from '../guard/bearer-token.guard';
 import { RegisterUserDto } from './dtos/register-user.dto';

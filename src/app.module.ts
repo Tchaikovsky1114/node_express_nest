@@ -9,17 +9,22 @@ import { UserModel } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CommonModule } from './common/common.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     PostsModule,
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true // 모든 서비스/프로바이더에 제공하겠다는 뜻
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres', // db-type
-      host: '127.0.0.1',
-      port: 4444,
-      username: 'postgres15',
-      password: 'postgres15',
-      database: 'postgres15',
+      host: process.env.DB_HOST,
+      port: +process.env.DB_PORT,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
       entities: [
         PostModel,
         UserModel,
