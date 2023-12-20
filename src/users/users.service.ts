@@ -1,14 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dtos/create-user.dto';
 
 @Injectable()
 export class UsersService {
 
   constructor(
     @InjectRepository(UserModel) private readonly userRepository: Repository<UserModel>,
+
   ) {}
 
 
@@ -35,6 +35,18 @@ export class UsersService {
 
   async findAllUser () {
     return await this.userRepository.find()
+  }
+
+  async getUserById (id: number) {
+    const user = await this.userRepository
+    .createQueryBuilder('user')
+    .where('user.id = :userId', {userId: id})
+    .getOne()
+
+    if(!user) {
+      throw new NotFoundException(`유저 ${id}번은 존재하지 않습니다`)
+    }
+    return user
   }
 
   async getUserByEmail(email: string) {

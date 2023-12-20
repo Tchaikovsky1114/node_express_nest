@@ -1,6 +1,6 @@
-import { Body, ClassSerializerInterceptor, Controller, Get, Post, UseInterceptors } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Get, Param, Post, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dtos/create-user.dto';
+
 
 @Controller('users')
 export class UsersController {
@@ -12,5 +12,11 @@ export class UsersController {
   // 여기서는 class의 object에서 JSON 포맷으로 변환
   getUsers() {
     return this.usersService.findAllUser()
+  }
+
+  @Get(':id')
+  getUserById(@Param('id') id: string) {
+    console.log('excuted')
+    return this.usersService.getUserById(+id)
   }
 }
