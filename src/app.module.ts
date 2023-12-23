@@ -10,10 +10,17 @@ import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CommonModule } from './common/common.module';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { PUBLIC_FOLDER_PATH } from './common/const/path.const';
 
 @Module({
   imports: [
     PostsModule,
+    ServeStaticModule.forRoot({
+      // http://localhost
+      rootPath: PUBLIC_FOLDER_PATH, // file들을 서빙할 최상단의 폴더 = '/'
+      serveRoot: '/public' 
+    }),
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true // 모든 서비스/프로바이더에 제공하겠다는 뜻
