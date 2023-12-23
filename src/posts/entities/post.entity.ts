@@ -1,5 +1,5 @@
 import { UserModel } from "src/users/entities/user.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity, ManyToOne } from "typeorm";
 import { BaseModel} from '../../common/base.entity'
 import { IsString, MinLength } from "class-validator";
 // 테이블로 변환됨
@@ -16,9 +16,6 @@ export class PostModel extends BaseModel {
     nullable: false
   })
   author: UserModel;
-
-  
-  
   
   @Column()
   @IsString({
@@ -34,6 +31,11 @@ export class PostModel extends BaseModel {
     message: '글의 내용은 10자 이상 입력해야합니다.'
   })
   content: string;
+
+  @Column({
+    nullable: true
+  })
+  image?: string; // image의 위치를 저장하기 때문에 string
 
   @Column()
   likeCount: number;
